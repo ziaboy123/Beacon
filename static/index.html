@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Beacon</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+  <link rel="stylesheet" href="/static/css/style.css?v=4" />
+</head>
+<body>
+  <div id="app">
+    <div class="sidebar">
+      <div class="brand">
+        <div class="name">BEACON</div>
+        <div class="sub">TheUltimateRealm</div>
+      </div>
+      <div class="nav-item active" data-page="overview">Overview</div>
+      <div class="nav-item" data-page="console">Console</div>
+      <div class="nav-item" data-page="whitelist">Whitelist</div>
+      <div class="nav-item" data-page="players">Players</div>
+      <div class="nav-item" data-page="world">World</div>
+      <div class="sidebar-footer">
+        <span class="dot offline" id="status-dot"></span>
+        <span id="status-text">checking...</span>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="page active" id="page-overview">
+        <h1>Overview</h1>
+        <div id="overview-error"></div>
+        <div class="grid">
+          <div class="card">
+            <div class="label">Status</div>
+            <div class="value" id="ov-status">—</div>
+          </div>
+          <div class="card">
+            <div class="label">Players</div>
+            <div class="value" id="ov-players">—</div>
+          </div>
+          <div class="card">
+            <div class="label">TPS (1m / 5m / 15m)</div>
+            <div class="value small" id="ov-tps">—</div>
+          </div>
+          <div class="card">
+            <div class="label">Up Since</div>
+            <div class="value small" id="ov-uptime">—</div>
+          </div>
+          <div class="card">
+            <div class="label">Whitelisted</div>
+            <div class="value" id="ov-whitelisted">—</div>
+          </div>
+          <div class="card">
+            <div class="label">World Size</div>
+            <div class="value" id="ov-worldsize">—</div>
+          </div>
+          <div class="card" style="flex-basis: 100%">
+            <div class="label">MOTD</div>
+            <div class="value small" id="ov-motd" style="white-space: pre-line">—</div>
+          </div>
+        </div>
+        <div class="section-title">Online Now</div>
+        <div id="ov-online-list"></div>
+
+        <div class="section-title">World at a Glance</div>
+        <div class="grid">
+          <div class="card">
+            <div class="label">Difficulty</div>
+            <div class="value small" id="ov-w-difficulty">—</div>
+          </div>
+          <div class="card">
+            <div class="label">Weather</div>
+            <div class="value small" id="ov-w-weather">—</div>
+          </div>
+          <div class="card">
+            <div class="label">Seed</div>
+            <div class="value small" id="ov-w-seed">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="page-console">
+        <h1>Console</h1>
+        <div class="console-log" id="console-log"></div>
+        <div class="console-input-row">
+          <input type="text" id="console-input" placeholder="command (no leading /)" />
+          <button class="primary" id="console-send">Run</button>
+        </div>
+      </div>
+
+      <div class="page" id="page-whitelist">
+        <h1>Whitelist</h1>
+        <div class="inline-form">
+          <input type="text" id="whitelist-username" placeholder="Minecraft username" />
+          <button class="primary" id="whitelist-add">Add</button>
+        </div>
+        <div id="whitelist-error"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>UUID</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="whitelist-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="page" id="page-players">
+        <h1>Players</h1>
+        <div class="inline-form">
+          <input type="text" id="players-search" placeholder="search by name" />
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="players-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="page" id="page-world">
+        <h1>World</h1>
+        <div class="grid">
+          <div class="card">
+            <div class="label">Seed</div>
+            <div class="value small" id="w-seed">—</div>
+          </div>
+          <div class="card">
+            <div class="label">Difficulty</div>
+            <div class="value small" id="w-difficulty">—</div>
+          </div>
+          <div class="card">
+            <div class="label">Weather</div>
+            <div class="value small" id="w-weather">—</div>
+          </div>
+          <div class="card">
+            <div class="label">Spawn</div>
+            <div class="value small" id="w-spawn">—</div>
+          </div>
+        </div>
+        <div class="section-title">Game Rules</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Rule</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody id="w-gamerules"></tbody>
+          </table>
+        </div>
+        <div class="section-title">Disk Usage</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Path</th>
+                <th>Size</th>
+              </tr>
+            </thead>
+            <tbody id="w-disk"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="player-modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="player-modal-name">Player</h2>
+        <button class="close-btn" id="player-modal-close">&times;</button>
+      </div>
+      <div id="player-modal-body"></div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js?v=4"></script>
+</body>
+</html>

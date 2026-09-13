@@ -1,0 +1,8 @@
+#!/bin/bash
+# Fake journalctl for local console-tab testing only (macOS has no real journalctl).
+i=0
+while true; do
+  i=$((i+1))
+  echo "[dev] [Server thread/INFO]: Fake log line $i"
+  sleep 1
+done

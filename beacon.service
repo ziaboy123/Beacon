@@ -1,0 +1,15 @@
+[Unit]
+Description=Beacon - Minecraft server admin dashboard (LAN-only)
+After=network.target mc-ultimaterealm.service
+
+[Service]
+Type=simple
+User=minecraft
+Group=minecraft
+WorkingDirectory=/opt/beacon
+ExecStart=/opt/beacon/.venv/bin/python3 -m uvicorn app.main:app --host 10.68.5.243 --port 8090
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+pydantic-settings
+nbtlib
+httpx
+pillow
