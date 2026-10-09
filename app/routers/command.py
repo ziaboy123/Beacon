@@ -19,7 +19,7 @@ async def run_command(req: CommandRequest):
 
     # broadcast-rcon-to-ops is off server-side (see plan) specifically so
     # RCON commands are silent by default; announce attribution ourselves,
-    # matching the convention Arc already uses for its own RCON commands.
+    # matching the convention Umbros already uses for its own RCON commands.
     escaped = cmd.replace("\\", "\\\\").replace('"', '\\"')
     announce = f'tellraw @a {{"text":"[Beacon] running: /{escaped}","color":"gold"}}'
 

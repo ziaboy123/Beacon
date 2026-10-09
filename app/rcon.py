@@ -1,7 +1,7 @@
 """Minimal async Source RCON client.
 
-Same ~50-line protocol Arc's own rcon.py implements, ported independently
-here so Beacon has no dependency on the Arc project.
+Same ~50-line protocol Umbros's own rcon.py implements, ported independently
+here so Beacon has no dependency on the Umbros project.
 
 Packet format: int32 length (LE) | int32 request id (LE) | int32 type (LE)
 | null-terminated payload | extra null byte.

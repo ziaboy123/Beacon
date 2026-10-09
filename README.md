@@ -24,8 +24,8 @@ testing the console tail locally on macOS (`PATH="$(pwd)/scripts/devbin:$PATH" u
 
 1. Copy this directory to the box, create a venv, install requirements.
 2. Set up `.env` for real: `BEACON_RCON_PASSWORD` should match the
-   `rcon.password` already in `server.properties` (Arc already uses this
-   RCON setup — see `Arc/docs/ARC.md`). Confirm `BEACON_SYSTEMD_UNIT`
+   `rcon.password` already in `server.properties` (Umbros already uses this
+   RCON setup — see `Umbros/docs/UMBROS.md`). Confirm `BEACON_SYSTEMD_UNIT`
    matches the real unit name (`mc-ultimaterealm.service` as of writing).
 3. Run as its own systemd service (separate from the Minecraft server
    itself), bound to the LXC's LAN address, e.g. `10.68.5.243:8090`.
