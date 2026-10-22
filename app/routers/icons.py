@@ -8,6 +8,7 @@ shulker boxes, etc.) which have no separate item sprite.
 import io
 import os
 import re
+import time
 
 import httpx
 from fastapi import APIRouter, Response
@@ -38,6 +39,40 @@ _WIKI_ICON_OVERRIDES = {
     "ender_chest": "Ender_Chest.png",
     "trapped_chest": "Trapped_Chest.png",
 }
+
+# Items whose flat texture is missing or misleading, so the wiki's rendered
+# inventory icon ("Invicon_<Title_Case>.png") is used first: beds, banners,
+# heads/skulls, chests, decorated pots (no flat texture at all) and shulker
+# boxes (the block texture is just a flat coloured square).
+_WIKI_FIRST = re.compile(r"(^|_)(shulker_box|bed|banner|head|skull|chest|decorated_pot)$")
+
+
+def _wiki_filename(item_name: str) -> str | None:
+    if item_name in _WIKI_ICON_OVERRIDES:
+        return _WIKI_ICON_OVERRIDES[item_name]
+    if _WIKI_FIRST.search(item_name):
+        return "Invicon_" + "_".join(w.capitalize() for w in item_name.split("_")) + ".png"
+    return None
+
+
+# A failed lookup is remembered in memory only, for an hour. It used to be
+# written to disk as a 1x1 placeholder, which cached every miss forever (even
+# after the lookup was fixed). Placeholders already on disk are treated as
+# misses and retried (see _cached_icon).
+_MISS_TTL = 3600.0
+_misses: dict[str, float] = {}
+
+
+def _cached_icon(cache_path: str) -> str | None:
+    if not os.path.exists(cache_path):
+        return None
+    if os.path.getsize(cache_path) == len(_TRANSPARENT_PNG):
+        with open(cache_path, "rb") as f:
+            if f.read() == _TRANSPARENT_PNG:
+                os.remove(cache_path)
+                return None
+    return cache_path
+
 
 # Which trim overlay a piece of armor uses — same one file per armor
 # category regardless of pattern (confirmed: mcmeta only ships
@@ -73,18 +108,23 @@ async def _fetch_wiki_icon(client: httpx.AsyncClient, filename: str) -> bytes | 
     return None
 
 
-async def _fetch_base_icon_bytes(client: httpx.AsyncClient, item_name: str) -> bytes | None:
+async def _fetch_base_icon_bytes(client: httpx.AsyncClient, item_name: str) -> tuple[bytes | None, bool]:
+    """Returns (png bytes, degraded). `degraded` means a wiki-first item had
+    to fall back to its raw texture (wiki unreachable), so the caller should
+    not cache it and let the next request retry the wiki."""
+    wiki_filename = _wiki_filename(item_name)
+    if wiki_filename:
+        content = await _fetch_wiki_icon(client, wiki_filename)
+        if content:
+            return content, False
     for category in ("item", "block"):
         try:
             resp = await client.get(f"{_BASE_URL}/{category}/{item_name}.png")
         except Exception:
             continue
         if resp.status_code == 200:
-            return resp.content
-    wiki_filename = _WIKI_ICON_OVERRIDES.get(item_name)
-    if wiki_filename:
-        return await _fetch_wiki_icon(client, wiki_filename)
-    return None
+            return resp.content, wiki_filename is not None
+    return None, False
 
 
 async def _fetch_trim_layers(client: httpx.AsyncClient, armor_type: str, material: str):
@@ -139,21 +179,22 @@ async def get_icon(item_name: str):
 
     os.makedirs(_CACHE_DIR, exist_ok=True)
     cache_path = os.path.join(_CACHE_DIR, f"{item_name}.png")
-    if os.path.exists(cache_path):
+    if _cached_icon(cache_path):
         return FileResponse(cache_path, media_type="image/png")
 
+    if time.monotonic() - _misses.get(item_name, -_MISS_TTL) < _MISS_TTL:
+        return Response(content=_TRANSPARENT_PNG, media_type="image/png")
+
     async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
-        content = await _fetch_base_icon_bytes(client, item_name)
+        content, degraded = await _fetch_base_icon_bytes(client, item_name)
 
     if content:
-        with open(cache_path, "wb") as f:
-            f.write(content)
+        if not degraded:
+            with open(cache_path, "wb") as f:
+                f.write(content)
         return Response(content=content, media_type="image/png")
 
-    # Cache the miss too (as the placeholder) so we don't re-hit GitHub for
-    # every render of an item with no plain 2D texture (e.g. player heads).
-    with open(cache_path, "wb") as f:
-        f.write(_TRANSPARENT_PNG)
+    _misses[item_name] = time.monotonic()
     return Response(content=_TRANSPARENT_PNG, media_type="image/png")
 
 
@@ -172,7 +213,7 @@ async def get_trimmed_icon(item_name: str, material: str):
         return FileResponse(cache_path, media_type="image/png")
 
     async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
-        base_bytes = await _fetch_base_icon_bytes(client, item_name)
+        base_bytes, _ = await _fetch_base_icon_bytes(client, item_name)
         if base_bytes is None:
             return Response(content=_TRANSPARENT_PNG, media_type="image/png")
 

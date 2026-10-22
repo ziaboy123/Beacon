@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Beacon</title>
   <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
-  <link rel="stylesheet" href="/static/css/style.css?v=4" />
+  <link rel="stylesheet" href="/static/css/style.css?v=5" />
 </head>
 <body>
   <div id="app">
@@ -14,12 +14,12 @@
         <div class="name">BEACON</div>
         <div class="sub">TheUltimateRealm</div>
       </div>
-      <div class="nav-item active" data-page="overview">Overview</div>
-      <div class="nav-item" data-page="console">Console</div>
-      <div class="nav-item" data-page="whitelist">Whitelist</div>
-      <div class="nav-item" data-page="players">Players</div>
-      <div class="nav-item" data-page="world">World</div>
-      <div class="sidebar-footer">
+      <button type="button" class="nav-item active" data-page="overview" aria-current="page">Overview</button>
+      <button type="button" class="nav-item" data-page="console">Console</button>
+      <button type="button" class="nav-item" data-page="whitelist">Whitelist</button>
+      <button type="button" class="nav-item" data-page="players">Players</button>
+      <button type="button" class="nav-item" data-page="world">World</button>
+      <div class="sidebar-footer" role="status">
         <span class="dot offline" id="status-dot"></span>
         <span id="status-text">checking...</span>
       </div>
@@ -63,6 +63,7 @@
         <div id="ov-online-list"></div>
 
         <div class="section-title">World at a Glance</div>
+        <div id="ov-world-error"></div>
         <div class="grid">
           <div class="card">
             <div class="label">Difficulty</div>
@@ -83,7 +84,7 @@
         <h1>Console</h1>
         <div class="console-log" id="console-log"></div>
         <div class="console-input-row">
-          <input type="text" id="console-input" placeholder="command (no leading /)" />
+          <input type="text" id="console-input" placeholder="command (no leading /)" aria-label="Server command" />
           <button class="primary" id="console-send">Run</button>
         </div>
       </div>
@@ -91,7 +92,7 @@
       <div class="page" id="page-whitelist">
         <h1>Whitelist</h1>
         <div class="inline-form">
-          <input type="text" id="whitelist-username" placeholder="Minecraft username" />
+          <input type="text" id="whitelist-username" placeholder="Minecraft username" aria-label="Minecraft username to whitelist" />
           <button class="primary" id="whitelist-add">Add</button>
         </div>
         <div id="whitelist-error"></div>
@@ -100,7 +101,7 @@
             <thead>
               <tr>
                 <th>Name</th>
-                <th>UUID</th>
+                <th class="col-uuid">UUID</th>
                 <th></th>
               </tr>
             </thead>
@@ -112,7 +113,7 @@
       <div class="page" id="page-players">
         <h1>Players</h1>
         <div class="inline-form">
-          <input type="text" id="players-search" placeholder="search by name" />
+          <input type="text" id="players-search" placeholder="search by name" aria-label="Search players by name" />
         </div>
         <div class="table-wrap">
           <table>
@@ -129,6 +130,7 @@
 
       <div class="page" id="page-world">
         <h1>World</h1>
+        <div id="world-error"></div>
         <div class="grid">
           <div class="card">
             <div class="label">Seed</div>
@@ -176,15 +178,15 @@
   </div>
 
   <div class="modal-backdrop" id="player-modal-backdrop">
-    <div class="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="player-modal-name">
       <div class="modal-header">
         <h2 id="player-modal-name">Player</h2>
-        <button class="close-btn" id="player-modal-close">&times;</button>
+        <button type="button" class="close-btn" id="player-modal-close" aria-label="Close">&times;</button>
       </div>
       <div id="player-modal-body"></div>
     </div>
   </div>
 
-  <script src="/static/js/app.js?v=4"></script>
+  <script src="/static/js/app.js?v=5"></script>
 </body>
 </html>

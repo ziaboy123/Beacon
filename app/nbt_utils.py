@@ -256,7 +256,9 @@ def parse_level_dat(path: str) -> dict:
 
     return {
         "level_name": str(_get(data, "LevelName", default="")),
-        "seed": int(seed) if seed is not None else None,
+        # String: a 64-bit seed exceeds JS's exact-integer range (2^53) and would
+        # be silently rounded by JSON.parse in the browser.
+        "seed": str(int(seed)) if seed is not None else None,
         "difficulty": DIFFICULTY_NAMES.get(int(_get(data, "Difficulty", default=2)), "normal"),
         "difficulty_locked": bool(_get(data, "DifficultyLocked", default=0)),
         "day_time": int(_get(data, "DayTime", default=0)),

@@ -1,5 +1,7 @@
+import asyncio
 import json
 import os
+import time
 
 from fastapi import APIRouter, HTTPException
 
@@ -40,6 +42,15 @@ async def _online_names() -> set[str]:
         return set()
 
 
+# `save-all flush` writes every online player, so one flush serves all
+# requests. With the player popup open, /stats and /inventory each ran their
+# own flush every 4 s (two world saves per refresh); now concurrent and
+# back-to-back requests share one.
+_flush_lock = asyncio.Lock()
+_last_flush = 0.0
+_FLUSH_MIN_INTERVAL = 3.0
+
+
 async def _flush_if_online(uuid: str) -> None:
     """Playerdata/stats files are only written on Minecraft's own periodic
     autosave (every few minutes) or on logout — stale by up to that whole
@@ -48,16 +59,21 @@ async def _flush_if_online(uuid: str) -> None:
     we read it (Paper/Bukkit-specific; `flush` makes it block until done
     instead of just queuing the save).
     """
+    global _last_flush
     entry = next((e for e in _usercache() if e.get("uuid") == uuid), None)
     if entry is None:
         return
-    online = await _online_names()
-    if entry.get("name") not in online:
-        return
-    try:
-        await rcon.run(settings.rcon_host, settings.rcon_port, settings.rcon_password, "save-all flush")
-    except Exception:
-        pass
+    async with _flush_lock:
+        if time.monotonic() - _last_flush < _FLUSH_MIN_INTERVAL:
+            return
+        online = await _online_names()
+        if entry.get("name") not in online:
+            return
+        try:
+            await rcon.run(settings.rcon_host, settings.rcon_port, settings.rcon_password, "save-all flush")
+        except Exception:
+            pass
+        _last_flush = time.monotonic()
 
 
 @router.get("/api/players")
