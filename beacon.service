@@ -7,7 +7,9 @@ Type=simple
 User=minecraft
 Group=minecraft
 WorkingDirectory=/opt/beacon
-ExecStart=/opt/beacon/.venv/bin/python3 -m uvicorn app.main:app --host 10.68.5.243 --port 8090
+# BEACON_HOST (the LAN address to bind) comes from the untracked .env on the box
+EnvironmentFile=/opt/beacon/.env
+ExecStart=/opt/beacon/.venv/bin/python3 -m uvicorn app.main:app --host ${BEACON_HOST} --port 8090
 Restart=on-failure
 RestartSec=10
 

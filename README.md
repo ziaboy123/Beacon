@@ -20,7 +20,7 @@ only, not for deployment. The Console tab needs `journalctl` on PATH, which
 only exists on Linux — `scripts/devbin/journalctl` is a fake shim for
 testing the console tail locally on macOS (`PATH="$(pwd)/scripts/devbin:$PATH" uvicorn ...`).
 
-## Deploying to the real server (LXC 200, `10.68.5.243`)
+## Deploying to the real server (the Minecraft LXC)
 
 1. Copy this directory to the box, create a venv, install requirements.
 2. Set up `.env` for real: `BEACON_RCON_PASSWORD` should match the
@@ -28,7 +28,8 @@ testing the console tail locally on macOS (`PATH="$(pwd)/scripts/devbin:$PATH" u
    RCON setup — see `Umbros/docs/UMBROS.md`). Confirm `BEACON_SYSTEMD_UNIT`
    matches the real unit name (`mc-ultimaterealm.service` as of writing).
 3. Run as its own systemd service (separate from the Minecraft server
-   itself), bound to the LXC's LAN address, e.g. `10.68.5.243:8090`.
+   itself), bound to the LXC's LAN address: set `BEACON_HOST` in the
+   untracked `.env` (`beacon.service` reads it), e.g. `192.168.1.50:8090`.
 4. Add a UFW rule scoping that port to the home LAN subnet(s) — defense in
    depth given the box's double-NAT/multi-VLAN setup — and confirm no
    router port-forward exists for it.
@@ -39,3 +40,5 @@ testing the console tail locally on macOS (`PATH="$(pwd)/scripts/devbin:$PATH" u
    1.21.11) but was only tested against synthetic fixtures here, not real
    data. If armor/offhand items show up in "Other" instead of their proper
    bucket, the slot-number assumptions need adjusting for this version.
+
+Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.
